@@ -1,0 +1,70 @@
+version: '3'
+
+services:
+
+  web:
+    container_name: laravel.svc.web
+    hostname: web
+    image: nginx
+    depends_on:
+    - app
+    - redis
+    networks:
+      laravel.net:
+        aliases:
+          - laravel.bei
+    ports:
+    - "80:80"
+    - "443:443"
+    volumes:
+    - "../quickstart:/usr/share/nginx/quickstart:delegated"
+    - "./nginx-conf/conf-d:/etc/nginx/conf.d:delegated"
+    - "./nginx-conf/ssl:/etc/nginx/ssl:delegated"
+
+  db:
+    container_name: laravel.svc.db
+    hostname: db
+    image: mysql:5.6
+    networks:
+      - laravel.net
+    ports:
+      - "3307:3306"
+    volumes:
+      - "./db-init-d:/docker-entrypoint-initdb.d:delegated"
+      - "./db-data:/var/lib/mysql:delegated"
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+
+  app:
+    container_name: laravel.svc.app
+    hostname: app
+    build:
+      dockerfile: dockerfiles/laravel-app.dockerfile
+      context: ./
+    image: laravel.img.app
+    networks:
+      - laravel.net
+    volumes:
+    - "../quickstart:/var/www/quickstart:delegated"
+    - "./php-ini/z-misc.ini:/usr/local/etc/php/conf.d/z-misc.ini"
+    - "./php-ini/z-xdebug.ini:/usr/local/etc/php/conf.d/z-xdebug.ini"
+    environment:
+      XDEBUG_CONFIG: remote_host=${HOST_IP}
+      MAILTRAP_USER: ${MAILTRAP_USER}
+      MAILTRAP_PASSWORD: ${MAILTRAP_PASSWORD}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+
+  redis:
+    container_name: laravel.svc.redis
+    hostname: redis
+    image: redis:4.0
+    ports:
+      - "6382:6379"
+    networks:
+      - laravel.net
+
+networks:
+  laravel.net:
+    external:
+      name: laravel.net

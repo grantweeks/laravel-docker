@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Get host IP address that is routable from service containers.
+ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -E '192.168|10.2.' | head -1

@@ -1,0 +1,7 @@
+db-data
+db-init-d/*.gz
+ionic-conf/config.json
+.env
+.idea
+db-init/
+ionic-cli/
